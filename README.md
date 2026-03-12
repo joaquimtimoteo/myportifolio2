@@ -1,37 +1,56 @@
-Aqui está o **código completo correto e atualizado** para o seu laboratório com:
+Perfeito — isso explica o problema.
+Se você **só tem**:
 
-* `QLabel`
-* `QLineEdit`
-* `QSpinBox`
-* `QPushButton`
-* `QMessageBox`
+```
+main.cpp
+mainwindow.cpp
+mainwindow.ui
+```
 
-Exatamente como normalmente os professores pedem. 👨‍💻
+então **falta um arquivo muito importante**:
+
+```
+mainwindow.h
+```
+
+Sem ele o projeto normalmente **não compila corretamente**.
+
+Vamos resolver em **2 minutos**.
 
 ---
 
-# 1️⃣ `main.cpp`
+# 1️⃣ Criar o arquivo `mainwindow.h`
 
-Arquivo que inicia a aplicação.
+No **Qt Creator**:
 
-```cpp
-#include "mainwindow.h"
-#include <QApplication>
+1️⃣ Clique com botão direito no projeto
+2️⃣ Escolha:
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
-}
+```
+Add New...
+```
+
+3️⃣ Depois:
+
+```
+C++ → C++ Header File
+```
+
+4️⃣ Nome do arquivo:
+
+```
+mainwindow.h
+```
+
+Clique:
+
+```
+Next → Finish
 ```
 
 ---
 
-# 2️⃣ `mainwindow.h`
-
-Define a classe da janela principal.
+# 2️⃣ Coloque este código dentro do `mainwindow.h`
 
 ```cpp
 #ifndef MAINWINDOW_H
@@ -65,9 +84,9 @@ private:
 
 ---
 
-# 3️⃣ `mainwindow.cpp`
+# 3️⃣ Agora verifique o `mainwindow.cpp`
 
-Aqui está a lógica do programa.
+Ele deve estar assim:
 
 ```cpp
 #include "mainwindow.h"
@@ -101,48 +120,52 @@ void MainWindow::on_sendButton_clicked()
 
 ---
 
-# 4️⃣ Configuração da interface (`mainwindow.ui`)
+# 4️⃣ Verifique o `main.cpp`
 
-No **Qt Designer**, configure assim:
+```cpp
+#include "mainwindow.h"
+#include <QApplication>
 
-### Widgets na janela
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
+```
+
+---
+
+# 5️⃣ Compilar novamente
+
+Agora execute:
 
 ```
-Enter your name:
-[ QLineEdit ]
+Ctrl + R
+```
 
-Enter your age:
-[ QSpinBox ]
+ou clique:
 
-[ Send ]
+```
+▶ Run
 ```
 
 ---
 
-### ObjectName dos widgets
+# ⚠️ Muito importante
 
-| Widget      | ObjectName |
-| ----------- | ---------- |
-| QLabel      | nameLabel  |
-| QLineEdit   | nameInput  |
-| QSpinBox    | ageInput   |
-| QPushButton | sendButton |
+No **Qt Designer (`mainwindow.ui`)** você precisa ter:
 
----
-
-### Texto mostrado
-
-| Widget  | Text            |
-| ------- | --------------- |
-| Label 1 | Enter your name |
-| Label 2 | Enter your age  |
-| Button  | Send            |
+| Widget      | objectName   |
+| ----------- | ------------ |
+| QLineEdit   | `nameInput`  |
+| QSpinBox    | `ageInput`   |
+| QPushButton | `sendButton` |
 
 ---
 
-# 5️⃣ Resultado do programa
-
-Janela:
+# ✅ Depois disso seu programa vai funcionar:
 
 ```
 Enter your name:
@@ -154,7 +177,7 @@ Enter your age:
 [ Send ]
 ```
 
-Mensagem exibida:
+Mensagem:
 
 ```
 Hello Joaquim
@@ -163,35 +186,4 @@ Your age is: 24
 
 ---
 
-# 6️⃣ Estrutura final do projeto
-
-```
-Lab2_GUI
-│
-├── main.cpp
-├── mainwindow.cpp
-├── mainwindow.h
-├── mainwindow.ui
-└── CMakeLists.txt
-```
-
----
-
-# 7️⃣ Como explicar para o professor (em russo)
-
-Se ele perguntar o que você fez:
-
-```
-В данной работе был создан простой графический интерфейс 
-в среде Qt Creator на языке C++.
-
-Были использованы виджеты:
-QLabel, QLineEdit, QSpinBox и QPushButton.
-
-При нажатии на кнопку программа получает имя и возраст
-пользователя и выводит сообщение с помощью QMessageBox.
-```
-
----
-
-✅ Se quiser, posso também te mostrar **como deixar o layout profissional (Grid Layout)** — isso é algo que **quase sempre dá ponto extra em laboratórios de Qt**.
+💡 Se quiser, posso também te mostrar **como organizar o layout corretamente (Grid Layout)** — isso é **um detalhe que muitos professores russos exigem no relatório do laboratório**.
