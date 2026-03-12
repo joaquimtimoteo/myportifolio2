@@ -1,64 +1,73 @@
-Esse erro é **muito comum no Qt/C++** e normalmente é apenas **um erro de nome da classe**.
+Aqui está o **código completo correto e atualizado** para o seu laboratório com:
 
-O erro:
+* `QLabel`
+* `QLineEdit`
+* `QSpinBox`
+* `QPushButton`
+* `QMessageBox`
 
-```
-Use of undeclared identifier 'MainWindows'
-```
-
-significa:
-
-> O compilador **não conhece essa classe**, porque ela **não existe**.
-
-Provavelmente você escreveu:
-
-```cpp
-MainWindows
-```
-
-Mas o nome correto é:
-
-```cpp
-MainWindow
-```
-
-⚠️ **Sem o "s" no final.**
+Exatamente como normalmente os professores pedem. 👨‍💻
 
 ---
 
-# ✅ Como corrigir
+# 1️⃣ `main.cpp`
 
-## 1️⃣ Abra `mainwindow.cpp`
-
-Procure algo assim:
+Arquivo que inicia a aplicação.
 
 ```cpp
-MainWindows::MainWindows(QWidget *parent)
-```
+#include "mainwindow.h"
+#include <QApplication>
 
-ou
-
-```cpp
-void MainWindows::on_sendButton_clicked()
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
 ```
 
 ---
 
-## 2️⃣ Corrija para:
+# 2️⃣ `mainwindow.h`
+
+Define a classe da janela principal.
 
 ```cpp
-MainWindow::MainWindow(QWidget *parent)
-```
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-e
+#include <QMainWindow>
 
-```cpp
-void MainWindow::on_sendButton_clicked()
+QT_BEGIN_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private slots:
+    void on_sendButton_clicked();
+
+private:
+    Ui::MainWindow *ui;
+};
+
+#endif // MAINWINDOW_H
 ```
 
 ---
 
-# ✔ Exemplo correto
+# 3️⃣ `mainwindow.cpp`
+
+Aqui está a lógica do programa.
 
 ```cpp
 #include "mainwindow.h"
@@ -80,53 +89,109 @@ MainWindow::~MainWindow()
 void MainWindow::on_sendButton_clicked()
 {
     QString name = ui->nameInput->text();
+    int age = ui->ageInput->value();
 
-    QMessageBox::information(this, "Message",
-                             "Hello " + name);
+    QString message = "Hello " + name +
+                      "\nYour age is: " +
+                      QString::number(age);
+
+    QMessageBox::information(this, "User Info", message);
 }
 ```
 
 ---
 
-# ⚠️ Outra coisa para verificar
+# 4️⃣ Configuração da interface (`mainwindow.ui`)
 
-Abra **`mainwindow.h`** e confirme que está assim:
+No **Qt Designer**, configure assim:
 
-```cpp
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+### Widgets na janela
+
 ```
+Enter your name:
+[ QLineEdit ]
 
-e não:
+Enter your age:
+[ QSpinBox ]
 
-```cpp
-MainWindows
+[ Send ]
 ```
 
 ---
 
-# 💡 Por que isso acontece?
+### ObjectName dos widgets
 
-Quando você cria o projeto, o Qt gera a classe:
-
-```
-MainWindow
-```
-
-Mas se você escreve manualmente:
-
-```
-MainWindows
-```
-
-o compilador não encontra essa classe.
+| Widget      | ObjectName |
+| ----------- | ---------- |
+| QLabel      | nameLabel  |
+| QLineEdit   | nameInput  |
+| QSpinBox    | ageInput   |
+| QPushButton | sendButton |
 
 ---
 
-# ✅ Se quiser, mande aqui:
+### Texto mostrado
 
-* o código do **`mainwindow.cpp`**
-* ou um **print do erro**
+| Widget  | Text            |
+| ------- | --------------- |
+| Label 1 | Enter your name |
+| Label 2 | Enter your age  |
+| Button  | Send            |
 
-e eu te mostro **exatamente onde corrigir em 10 segundos**.
+---
+
+# 5️⃣ Resultado do programa
+
+Janela:
+
+```
+Enter your name:
+[ Joaquim ]
+
+Enter your age:
+[ 24 ]
+
+[ Send ]
+```
+
+Mensagem exibida:
+
+```
+Hello Joaquim
+Your age is: 24
+```
+
+---
+
+# 6️⃣ Estrutura final do projeto
+
+```
+Lab2_GUI
+│
+├── main.cpp
+├── mainwindow.cpp
+├── mainwindow.h
+├── mainwindow.ui
+└── CMakeLists.txt
+```
+
+---
+
+# 7️⃣ Como explicar para o professor (em russo)
+
+Se ele perguntar o que você fez:
+
+```
+В данной работе был создан простой графический интерфейс 
+в среде Qt Creator на языке C++.
+
+Были использованы виджеты:
+QLabel, QLineEdit, QSpinBox и QPushButton.
+
+При нажатии на кнопку программа получает имя и возраст
+пользователя и выводит сообщение с помощью QMessageBox.
+```
+
+---
+
+✅ Se quiser, posso também te mostrar **como deixar o layout profissional (Grid Layout)** — isso é algo que **quase sempre dá ponto extra em laboratórios de Qt**.
