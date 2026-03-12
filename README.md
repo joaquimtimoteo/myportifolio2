@@ -1,155 +1,132 @@
-Isso é normal no começo no **Qt Designer**. Vamos fazer **passo-a-passo exatamente onde clicar** para renomear os widgets.
+Esse erro é **muito comum no Qt/C++** e normalmente é apenas **um erro de nome da classe**.
+
+O erro:
+
+```
+Use of undeclared identifier 'MainWindows'
+```
+
+significa:
+
+> O compilador **não conhece essa classe**, porque ela **não existe**.
+
+Provavelmente você escreveu:
+
+```cpp
+MainWindows
+```
+
+Mas o nome correto é:
+
+```cpp
+MainWindow
+```
+
+⚠️ **Sem o "s" no final.**
 
 ---
 
-# 1️⃣ Clique no widget primeiro
+# ✅ Como corrigir
 
-Abra:
+## 1️⃣ Abra `mainwindow.cpp`
 
-```
-mainwindow.ui
-```
+Procure algo assim:
 
-Agora:
-
-1️⃣ Clique **uma vez** no widget que quer renomear.
-
-Exemplo:
-
-* clique no **campo de texto**
-* ou no **botão**
-
-Você verá **quadradinhos azuis ao redor** do elemento.
-
----
-
-# 2️⃣ Abrir o painel de propriedades
-
-No **lado direito da tela** existe o painel:
-
-```
-Property Editor
+```cpp
+MainWindows::MainWindows(QWidget *parent)
 ```
 
-Se não estiver visível:
+ou
 
-```
-View → Views → Property Editor
-```
-
----
-
-# 3️⃣ Encontrar "objectName"
-
-No painel direito procure:
-
-```
-QObject
-```
-
-Dentro dele existe:
-
-```
-objectName
-```
-
-Exemplo:
-
-```
-objectName: pushButton
+```cpp
+void MainWindows::on_sendButton_clicked()
 ```
 
 ---
 
-# 4️⃣ Alterar o nome
+## 2️⃣ Corrija para:
 
-Clique no valor e altere.
-
-### Botão
-
-```
-pushButton  → sendButton
+```cpp
+MainWindow::MainWindow(QWidget *parent)
 ```
 
-### Campo de texto
+e
 
-```
-lineEdit → nameInput
-```
-
-### Label
-
-```
-label → nameLabel
+```cpp
+void MainWindow::on_sendButton_clicked()
 ```
 
 ---
 
-# 5️⃣ Pressione ENTER
+# ✔ Exemplo correto
 
-Depois de alterar o nome:
+```cpp
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QMessageBox>
 
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::on_sendButton_clicked()
+{
+    QString name = ui->nameInput->text();
+
+    QMessageBox::information(this, "Message",
+                             "Hello " + name);
+}
 ```
-Enter
-```
-
-O Qt salva automaticamente.
 
 ---
 
-# 📌 Outra forma (mais fácil)
+# ⚠️ Outra coisa para verificar
 
-No lado esquerdo existe:
+Abra **`mainwindow.h`** e confirme que está assim:
 
+```cpp
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
 ```
-Object Inspector
+
+e não:
+
+```cpp
+MainWindows
 ```
 
-Lista assim:
+---
+
+# 💡 Por que isso acontece?
+
+Quando você cria o projeto, o Qt gera a classe:
 
 ```
 MainWindow
-   centralWidget
-      label
-      lineEdit
-      pushButton
 ```
 
-Você pode:
-
-1️⃣ clicar com botão direito
-2️⃣ escolher
+Mas se você escreve manualmente:
 
 ```
-Change objectName
+MainWindows
 ```
+
+o compilador não encontra essa classe.
 
 ---
 
-# ⚠️ Problema comum
+# ✅ Se quiser, mande aqui:
 
-Se não deixa editar, normalmente é porque você está mudando **o texto** e não **o objectName**.
+* o código do **`mainwindow.cpp`**
+* ou um **print do erro**
 
-| Coisa      | O que faz            |
-| ---------- | -------------------- |
-| text       | texto que aparece    |
-| objectName | nome usado no código |
-
----
-
-# Exemplo
-
-Botão:
-
-```
-text: Send
-objectName: sendButton
-```
-
----
-
-# 📷 Se quiser
-
-Mande **um print do Qt Creator** da tela do `mainwindow.ui`.
-
-Eu consigo te mostrar **exatamente onde clicar**, porque o Qt às vezes muda a posição dos painéis dependendo da versão.
+e eu te mostro **exatamente onde corrigir em 10 segundos**.
