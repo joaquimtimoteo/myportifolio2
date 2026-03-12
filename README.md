@@ -1,54 +1,41 @@
-Pelo seu print dá para ver **dois erros principais no `mainwindow.cpp`**.
+Pelo seu novo print, o erro está **muito claro**. 👍
+Você escreveu **`UI::MainWindow`**, mas o correto no Qt é **`Ui::MainWindow`**.
 
-Vou mostrar **exatamente onde corrigir**.
-
----
-
-# ❌ Erro 1 — Nome errado do construtor
-
-Você escreveu:
-
-```cpp
-MainWindow::MainWindows(QWidget *parent)
-```
-
-O correto é:
-
-```cpp
-MainWindow::MainWindow(QWidget *parent)
-```
-
-⚠️ O construtor **deve ter exatamente o mesmo nome da classe**.
+A diferença é **uma letra minúscula**.
 
 ---
 
-# ❌ Erro 2 — Você escreveu `UI::MainWindow`
-
-No Qt o namespace é:
+# ❌ O que está no seu código
 
 ```cpp
-Ui
+ui(new UI::MainWindow)
 ```
 
-com **i minúsculo**.
-
-Você escreveu:
+e
 
 ```cpp
-UI::MainWindow
-```
-
-O correto é:
-
-```cpp
-Ui::MainWindow
+delete UI;
 ```
 
 ---
 
-# ✅ Código correto completo do `mainwindow.cpp`
+# ✅ O correto
 
-Substitua **todo o seu arquivo** por este:
+```cpp
+ui(new Ui::MainWindow)
+```
+
+e
+
+```cpp
+delete ui;
+```
+
+---
+
+# ✔ Seu `mainwindow.cpp` deve ficar assim
+
+Substitua o arquivo inteiro por este código:
 
 ```cpp
 #include "mainwindow.h"
@@ -82,15 +69,26 @@ void MainWindow::on_sendButton_clicked()
 
 ---
 
-# ✔ Depois de corrigir
+# ⚠️ Erros que você tinha
 
-Salve o arquivo e execute:
+| Errado           | Correto          |
+| ---------------- | ---------------- |
+| `UI::MainWindow` | `Ui::MainWindow` |
+| `delete UI`      | `delete ui`      |
+| `MainWindows`    | `MainWindow`     |
 
-```
+---
+
+# ▶ Agora faça
+
+1️⃣ **Salvar** o arquivo
+2️⃣ Rodar:
+
+```text
 Ctrl + R
 ```
 
-ou clique:
+ou clicar no botão:
 
 ```
 ▶ Run
@@ -98,22 +96,5 @@ ou clique:
 
 ---
 
-# ⚠️ Verifique também no Qt Designer
-
-Abra:
-
-```
-mainwindow.ui
-```
-
-Confirme os **objectName**:
-
-| Widget      | objectName   |
-| ----------- | ------------ |
-| QLineEdit   | `nameInput`  |
-| QSpinBox    | `ageInput`   |
-| QPushButton | `sendButton` |
-
----
-
-✅ Se quiser, mande também **o print do `mainwindow.h`**, porque normalmente aparece **mais um erro pequeno ali**, e eu consigo deixar seu projeto **100% compilando em 1 minuto**.
+✅ Se quiser, mande também **um print do `mainwindow.ui`**.
+Quero confirmar se **os nomes `nameInput`, `ageInput` e `sendButton` estão corretos**, porque isso é o **último erro que normalmente aparece nesse laboratório**.
