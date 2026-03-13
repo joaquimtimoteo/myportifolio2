@@ -1,100 +1,31 @@
-Pelo seu novo print, o erro está **muito claro**. 👍
-Você escreveu **`UI::MainWindow`**, mas o correto no Qt é **`Ui::MainWindow`**.
+Boa ideia! Vamos criar um projeto limpo do zero. 
 
-A diferença é **uma letra minúscula**.
+## Passo 1 — Criar novo projeto
+
+No Qt Creator:
+```
+File → New Project → Qt Widgets Application → Choose
+```
+
+Preenche assim:
+- **Name:** `Lab2GUI`
+- **Location:** escolhe uma pasta simples, ex: `C:\Users\admin\Documents`
+- Clica **Next** até ao fim e **Finish**
 
 ---
 
-# ❌ O que está no seu código
+## Passo 2 — Manda prints de:
 
-```cpp
-ui(new UI::MainWindow)
-```
+1. O novo projeto criado (aba `mainwindow.cpp`)
+2. O `mainwindow.ui` aberto no Designer
 
-e
-
-```cpp
-delete UI;
-```
+Assim vejo a estrutura limpa e digo exatamente o que colocar em cada arquivo sem erros.
 
 ---
 
-# ✅ O correto
+Ou se preferires, diz-me já:
 
-```cpp
-ui(new Ui::MainWindow)
-```
+- Que **versão do Qt** estás a usar? (Qt5 ou Qt6?)
+- Estás no **Windows** ou **ALT Linux** agora?
 
-e
-
-```cpp
-delete ui;
-```
-
----
-
-# ✔ Seu `mainwindow.cpp` deve ficar assim
-
-Substitua o arquivo inteiro por este código:
-
-```cpp
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QMessageBox>
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent),
-      ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::on_sendButton_clicked()
-{
-    QString name = ui->nameInput->text();
-    int age = ui->ageInput->value();
-
-    QString message = "Hello " + name +
-                      "\nYour age is: " +
-                      QString::number(age);
-
-    QMessageBox::information(this, "User Info", message);
-}
-```
-
----
-
-# ⚠️ Erros que você tinha
-
-| Errado           | Correto          |
-| ---------------- | ---------------- |
-| `UI::MainWindow` | `Ui::MainWindow` |
-| `delete UI`      | `delete ui`      |
-| `MainWindows`    | `MainWindow`     |
-
----
-
-# ▶ Agora faça
-
-1️⃣ **Salvar** o arquivo
-2️⃣ Rodar:
-
-```text
-Ctrl + R
-```
-
-ou clicar no botão:
-
-```
-▶ Run
-```
-
----
-
-✅ Se quiser, mande também **um print do `mainwindow.ui`**.
-Quero confirmar se **os nomes `nameInput`, `ageInput` e `sendButton` estão corretos**, porque isso é o **último erro que normalmente aparece nesse laboratório**.
+Com isso preparo o código completo e correto para colares diretamente! 🚀
