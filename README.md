@@ -1,31 +1,96 @@
-Boa ideia! Vamos criar um projeto limpo do zero. 
+Perfeito! O projeto novo está limpo. Vejo um problema na linha 2 do `mainwindow.cpp`:
 
-## Passo 1 — Criar novo projeto
-
-No Qt Creator:
-```
-File → New Project → Qt Widgets Application → Choose
-```
-
-Preenche assim:
-- **Name:** `Lab2GUI`
-- **Location:** escolhe uma pasta simples, ex: `C:\Users\admin\Documents`
-- Clica **Next** até ao fim e **Finish**
+❌ Tens: `#include "./ui_mainwindow.h"`  
+✅ Deve ser: `#include "ui_mainwindow.h"`
 
 ---
 
-## Passo 2 — Manda prints de:
+## Passo 1 — Corrige o `mainwindow.cpp`
 
-1. O novo projeto criado (aba `mainwindow.cpp`)
-2. O `mainwindow.ui` aberto no Designer
+Substitui o conteúdo completo por este:
 
-Assim vejo a estrutura limpa e digo exatamente o que colocar em cada arquivo sem erros.
+```cpp
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QMessageBox>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::on_sendButton_clicked()
+{
+    QString name = ui->nameInput->text();
+    int age = ui->ageInput->value();
+
+    QString message = "Hello " + name +
+                      "\nYour age is: " +
+                      QString::number(age);
+
+    QMessageBox::information(this, "User Info", message);
+}
+```
 
 ---
 
-Ou se preferires, diz-me já:
+## Passo 2 — Adiciona o slot no `mainwindow.h`
 
-- Que **versão do Qt** estás a usar? (Qt5 ou Qt6?)
-- Estás no **Windows** ou **ALT Linux** agora?
+Na secção `private slots:` adiciona:
 
-Com isso preparo o código completo e correto para colares diretamente! 🚀
+```cpp
+private slots:
+    void on_sendButton_clicked();
+```
+
+O teu `mainwindow.h` deve ficar assim:
+
+```cpp
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private slots:
+    void on_sendButton_clicked();
+
+private:
+    Ui::MainWindow *ui;
+};
+#endif
+```
+
+---
+
+## Passo 3 — Configura o `mainwindow.ui`
+
+Abre o `mainwindow.ui` clicando duas vezes nele. No **Qt Designer** arrasta para a janela:
+
+| Widget | objectName |
+|---|---|
+| `QLineEdit` | `nameInput` |
+| `QSpinBox` | `ageInput` |
+| `QPushButton` | `sendButton` |
+
+Depois pressiona **`Ctrl + R`** para compilar e rodar! 🚀
+
+Manda print do Designer quando abrires o `.ui`!
