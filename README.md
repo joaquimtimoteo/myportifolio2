@@ -1,96 +1,47 @@
-Perfeito! O projeto novo está limpo. Vejo um problema na linha 2 do `mainwindow.cpp`:
-
-❌ Tens: `#include "./ui_mainwindow.h"`  
-✅ Deve ser: `#include "ui_mainwindow.h"`
+Para o teu trabalho prático, podes chamar a label assim:
 
 ---
 
-## Passo 1 — Corrige o `mainwindow.cpp`
+## Título sugerido para a Label principal
 
-Substitui o conteúdo completo por este:
-
-```cpp
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QMessageBox>
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::on_sendButton_clicked()
-{
-    QString name = ui->nameInput->text();
-    int age = ui->ageInput->value();
-
-    QString message = "Hello " + name +
-                      "\nYour age is: " +
-                      QString::number(age);
-
-    QMessageBox::information(this, "User Info", message);
-}
+```
+User Information
+```
+ou em russo (já que o trabalho é russo):
+```
+Информация о пользователе
 ```
 
 ---
 
-## Passo 2 — Adiciona o slot no `mainwindow.h`
+## Labels para cada campo
 
-Na secção `private slots:` adiciona:
-
-```cpp
-private slots:
-    void on_sendButton_clicked();
-```
-
-O teu `mainwindow.h` deve ficar assim:
-
-```cpp
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
-#include <QMainWindow>
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
-
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
-
-public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
-
-private slots:
-    void on_sendButton_clicked();
-
-private:
-    Ui::MainWindow *ui;
-};
-#endif
-```
-
----
-
-## Passo 3 — Configura o `mainwindow.ui`
-
-Abre o `mainwindow.ui` clicando duas vezes nele. No **Qt Designer** arrasta para a janela:
-
-| Widget | objectName |
+| Label | Campo |
 |---|---|
-| `QLineEdit` | `nameInput` |
-| `QSpinBox` | `ageInput` |
-| `QPushButton` | `sendButton` |
+| `Name:` | antes do `nameInput` |
+| `Age:` | antes do `ageInput` |
 
-Depois pressiona **`Ctrl + R`** para compilar e rodar! 🚀
+---
 
-Manda print do Designer quando abrires o `.ui`!
+## Como adicionar no Designer
+
+1. Arrasta um widget **`QLabel`** da barra lateral
+2. Clica duas vezes nele
+3. Escreve o texto (ex: `Name:`)
+4. Repete para cada campo
+
+No fim deve ficar assim visualmente:
+
+```
+┌─────────────────────────┐
+│   User Information      │
+│                         │
+│  Name: [____________]   │
+│                         │
+│  Age:  [  25  ↑↓ ]     │
+│                         │
+│       [ Send ]          │
+└─────────────────────────┘
+```
+
+Manda um print quando estiver pronto! 🚀
