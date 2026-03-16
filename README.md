@@ -1,6 +1,53 @@
-## Código Completo — Практическая работа 2-1 (9)
+## Código Completo — Практическая работа 2-3
 
-São **4 ficheiros**. Cola cada um no Qt Creator.
+São **7 ficheiros**. Cola cada um com cuidado.
+
+> ⚠️ Para o QCustomPlot: descarrega `qcustomplot.h` e `qcustomplot.cpp` em [qcustomplot.com](https://www.qcustomplot.com) e coloca na pasta do projeto.
+
+---
+
+## 📁 `CMakeLists.txt`
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(Lab2GUI3 VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)
+
+set(PROJECT_SOURCES
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+    mainwindow.ui
+    settingsdialog.cpp
+    settingsdialog.h
+    settingsdialog.ui
+    qcustomplot.cpp
+    qcustomplot.h
+)
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_add_executable(Lab2GUI3 MANUAL_FINALIZATION ${PROJECT_SOURCES})
+else()
+    add_executable(Lab2GUI3 ${PROJECT_SOURCES})
+endif()
+
+target_link_libraries(Lab2GUI3 PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(Lab2GUI3)
+endif()
+```
 
 ---
 
@@ -13,10 +60,144 @@ São **4 ficheiros**. Cola cada um no Qt Creator.
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setApplicationName("Lab2GUI3");
+    a.setOrganizationName("QtLab");
+
     MainWindow w;
     w.show();
     return a.exec();
 }
+```
+
+---
+
+## 📁 `settingsdialog.h`
+
+```cpp
+#ifndef SETTINGSDIALOG_H
+#define SETTINGSDIALOG_H
+
+#include <QDialog>
+#include <QSettings>
+
+namespace Ui { class SettingsDialog; }
+
+class SettingsDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit SettingsDialog(QWidget *parent = nullptr);
+    ~SettingsDialog();
+
+    bool saveGeometry() const;
+
+private slots:
+    void onAccepted();
+
+private:
+    Ui::SettingsDialog *ui;
+    void loadSettings();
+    void saveSettings();
+};
+
+#endif
+```
+
+---
+
+## 📁 `settingsdialog.cpp`
+
+```cpp
+#include "settingsdialog.h"
+#include "ui_settingsdialog.h"
+#include <QSettings>
+
+SettingsDialog::SettingsDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::SettingsDialog)
+{
+    ui->setupUi(this);
+    setWindowTitle("Настройки");
+    setModal(true);
+    loadSettings();
+
+    connect(ui->buttonBox, &QDialogButtonBox::accepted,
+            this, &SettingsDialog::onAccepted);
+    connect(ui->buttonBox, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
+}
+
+SettingsDialog::~SettingsDialog()
+{
+    delete ui;
+}
+
+bool SettingsDialog::saveGeometry() const
+{
+    return ui->checkSaveGeometry->isChecked();
+}
+
+void SettingsDialog::loadSettings()
+{
+    QSettings s;
+    ui->checkSaveGeometry->setChecked(
+        s.value("saveGeometry", false).toBool());
+}
+
+void SettingsDialog::saveSettings()
+{
+    QSettings s;
+    s.setValue("saveGeometry", ui->checkSaveGeometry->isChecked());
+}
+
+void SettingsDialog::onAccepted()
+{
+    saveSettings();
+    accept();
+}
+```
+
+---
+
+## 📁 `settingsdialog.ui`
+
+Cria o ficheiro `settingsdialog.ui` com este conteúdo:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>360</width><height>180</height></rect>
+  </property>
+  <property name="windowTitle"><string>Настройки</string></property>
+  <layout class="QVBoxLayout">
+   <item>
+    <widget class="QGroupBox">
+     <property name="title"><string>Параметры окна</string></property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="QCheckBox" name="checkSaveGeometry">
+        <property name="text">
+         <string>Сохранять геометрию главного окна</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>
 ```
 
 ---
@@ -28,9 +209,9 @@ int main(int argc, char *argv[])
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPushButton>
+#include <QSettings>
 #include <QLabel>
-#include <QSignalMapper>
+#include "qcustomplot.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -44,30 +225,33 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:
-    // Задание 1
-    void onCheckBoxToggled(bool checked);
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
-    // Задание 2
-    void onCellClicked(int id);
-    void onClearClicked();
+private slots:
+    // Tarefa 1 — StatusBar cursor
+    void onCursorPositionChanged();
+
+    // Tarefa 2 — Settings
+    void openSettings();
+
+    // Tarefa 4/5 — Graph
+    void loadFileAndPlot();
+
+    // Tarefa 6 — QCustomPlot demo
+    void plotDemo();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow   *ui;
+    QLabel           *cursorLabel;
+    QCustomPlot      *plot;
 
-    // Задание 2 — игра
-    QPushButton   *buttons[3][3];
-    QLabel        *statusLabel;
-    QSignalMapper *signalMapper;
-    int            currentPlayer;
-    int            startPlayer;
-
-    bool checkWinner();
-    void resetBoard();
-    void updateLabel();
-
-    QWidget *buildWidgetsTab();
-    QWidget *buildGameTab();
+    void setupMenuAndToolbar();
+    void setupStatusBar();
+    void setupPlot();
+    void loadGeometry();
+    void saveGeometryIfNeeded();
+    void plotDataFromFile(const QString &filePath);
 };
 
 #endif
@@ -80,37 +264,45 @@ private:
 ```cpp
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "settingsdialog.h"
 
-#include <QTabWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QSlider>
-#include <QScrollBar>
-#include <QSpinBox>
-#include <QCheckBox>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QSignalMapper>
+#include <QMenuBar>
+#include <QToolBar>
+#include <QStatusBar>
+#include <QAction>
+#include <QFileDialog>
+#include <QTextStream>
 #include <QMessageBox>
-#include <QGroupBox>
-#include <QFrame>
+#include <QSplitter>
+#include <QVBoxLayout>
+#include <QSettings>
+#include <QCloseEvent>
+#include <cmath>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , currentPlayer(1)
-    , startPlayer(1)
 {
     ui->setupUi(this);
-    setWindowTitle("Lab 2-1: Виджеты и Крестики-нолики");
-    setMinimumSize(520, 480);
+    setWindowTitle("Lab 2-3: Приложение с GUI");
+    setMinimumSize(800, 550);
 
-    auto *tabs = new QTabWidget(this);
-    tabs->addTab(buildWidgetsTab(), "⚙ Виджеты");
-    tabs->addTab(buildGameTab(),    "✖ Крестики-нолики");
-    setCentralWidget(tabs);
+    setupMenuAndToolbar();
+    setupStatusBar();
+    setupPlot();
+    loadGeometry();
+
+    // Tarefa 1 — сигнал изменения позиции курсора
+    connect(ui->textEditor,
+            &QPlainTextEdit::cursorPositionChanged,
+            this,
+            &MainWindow::onCursorPositionChanged);
+
+    // Начальное состояние курсора
+    onCursorPositionChanged();
+
+    // Демо-график при запуске
+    plotDemo();
 }
 
 MainWindow::~MainWindow()
@@ -118,336 +310,355 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-// ─────────────────────────────────────────────
-// ЗАДАНИЕ 1 — 5 виджетов с сигнально-слотовыми
-// ─────────────────────────────────────────────
-QWidget *MainWindow::buildWidgetsTab()
+// ─────────────────────────────────────────
+// МЕНЮ И ПАНЕЛЬ ИНСТРУМЕНТОВ
+// ─────────────────────────────────────────
+void MainWindow::setupMenuAndToolbar()
 {
-    auto *w      = new QWidget;
-    auto *layout = new QVBoxLayout(w);
-    layout->setSpacing(16);
-    layout->setContentsMargins(20, 20, 20, 20);
+    // ── Меню Файл ──
+    QMenu *fileMenu = menuBar()->addMenu("Файл");
 
-    // --- Заголовок ---
-    auto *title = new QLabel("<b>Сигнально-слотовые соединения</b>");
-    title->setStyleSheet("font-size: 14px; color: #1565C0;");
-    layout->addWidget(title);
+    QAction *actLoad = new QAction("📂  Загрузить данные...", this);
+    actLoad->setShortcut(QKeySequence::Open);
+    actLoad->setStatusTip("Загрузить данные из файла и построить график");
+    fileMenu->addAction(actLoad);
 
-    // --- Группа 1: QSlider ↔ QScrollBar ↔ QSpinBox ---
-    auto *group1 = new QGroupBox("1. QSlider ↔ QScrollBar ↔ QSpinBox");
-    auto *g1lay  = new QVBoxLayout(group1);
+    fileMenu->addSeparator();
 
-    auto *slider    = new QSlider(Qt::Horizontal);
-    auto *scrollBar = new QScrollBar(Qt::Horizontal);
-    auto *spinBox   = new QSpinBox;
+    QAction *actExit = new QAction("Выход", this);
+    actExit->setShortcut(QKeySequence::Quit);
+    fileMenu->addAction(actExit);
 
-    slider->setRange(0, 100);
-    scrollBar->setRange(0, 100);
-    spinBox->setRange(0, 100);
+    // ── Меню Настройки ──
+    QMenu *settingsMenu = menuBar()->addMenu("Настройки");
+    QAction *actSettings = new QAction("⚙  Параметры...", this);
+    settingsMenu->addAction(actSettings);
 
-    slider->setFixedHeight(30);
-    scrollBar->setFixedHeight(20);
+    // ── Панель инструментов ──
+    QToolBar *toolBar = addToolBar("Главная");
+    toolBar->setMovable(false);
+    toolBar->addAction(actLoad);
+    toolBar->addSeparator();
+    toolBar->addAction(actSettings);
 
-    g1lay->addWidget(new QLabel("QSlider:"));
-    g1lay->addWidget(slider);
-    g1lay->addWidget(new QLabel("QScrollBar (следует за слайдером):"));
-    g1lay->addWidget(scrollBar);
-
-    auto *spinRow = new QHBoxLayout;
-    spinRow->addWidget(new QLabel("QSpinBox (синхронизирован):"));
-    spinRow->addWidget(spinBox);
-    spinRow->addStretch();
-    g1lay->addLayout(spinRow);
-
-    // Соединения
-    connect(slider,    QOverload<int>::of(&QSlider::valueChanged),
-            scrollBar, &QScrollBar::setValue);
-    connect(slider,    QOverload<int>::of(&QSlider::valueChanged),
-            spinBox,   &QSpinBox::setValue);
-    connect(spinBox,   QOverload<int>::of(&QSpinBox::valueChanged),
-            slider,    &QSlider::setValue);
-
-    layout->addWidget(group1);
-
-    // --- Группа 2: QCheckBox → QLabel ---
-    auto *group2 = new QGroupBox("2. QCheckBox → QLabel");
-    auto *g2lay  = new QHBoxLayout(group2);
-
-    auto *checkBox   = new QCheckBox("Активировать");
-    auto *checkLabel = new QLabel("Статус: Выкл");
-    checkLabel->setStyleSheet("color: red; font-weight: bold;");
-
-    g2lay->addWidget(checkBox);
-    g2lay->addWidget(checkLabel);
-    g2lay->addStretch();
-
-    connect(checkBox, &QCheckBox::toggled,
-            this, &MainWindow::onCheckBoxToggled);
-
-    // Сохраняем указатель через лямбду
-    connect(checkBox, &QCheckBox::toggled,
-            [checkLabel](bool checked) {
-                if (checked) {
-                    checkLabel->setText("Статус: Вкл ✓");
-                    checkLabel->setStyleSheet("color: green; font-weight: bold;");
-                } else {
-                    checkLabel->setText("Статус: Выкл");
-                    checkLabel->setStyleSheet("color: red; font-weight: bold;");
-                }
-            });
-
-    layout->addWidget(group2);
-
-    // --- Группа 3: QPushButton → QLineEdit.clear() ---
-    auto *group3 = new QGroupBox("3. QPushButton → QLineEdit (очистка)");
-    auto *g3lay  = new QHBoxLayout(group3);
-
-    auto *lineEdit  = new QLineEdit;
-    lineEdit->setPlaceholderText("Введите текст здесь...");
-    auto *clearBtn  = new QPushButton("Очистить");
-    clearBtn->setStyleSheet("padding: 4px 12px;");
-
-    g3lay->addWidget(lineEdit);
-    g3lay->addWidget(clearBtn);
-
-    connect(clearBtn, &QPushButton::clicked,
-            lineEdit, &QLineEdit::clear);
-
-    layout->addWidget(group3);
-    layout->addStretch();
-
-    return w;
+    // ── Соединения ──
+    connect(actLoad,     &QAction::triggered, this, &MainWindow::loadFileAndPlot);
+    connect(actExit,     &QAction::triggered, this, &QMainWindow::close);
+    connect(actSettings, &QAction::triggered, this, &MainWindow::openSettings);
 }
 
-void MainWindow::onCheckBoxToggled(bool /*checked*/)
+// ─────────────────────────────────────────
+// СТАТУС БАР
+// ─────────────────────────────────────────
+void MainWindow::setupStatusBar()
 {
-    // Логика вынесена в лямбду выше
+    cursorLabel = new QLabel("Стр: 1  Кол: 1");
+    cursorLabel->setStyleSheet("padding: 0 8px;");
+    statusBar()->addPermanentWidget(cursorLabel);
+    statusBar()->showMessage("Готово", 3000);
 }
 
-// ─────────────────────────────────────────────
-// ЗАДАНИЕ 2 — КРЕСТИКИ-НОЛИКИ
-// ─────────────────────────────────────────────
-QWidget *MainWindow::buildGameTab()
+// ─────────────────────────────────────────
+// TAREFA 1 — Позиция курсора
+// ─────────────────────────────────────────
+void MainWindow::onCursorPositionChanged()
 {
-    auto *w      = new QWidget;
-    auto *layout = new QVBoxLayout(w);
-    layout->setSpacing(12);
-    layout->setContentsMargins(20, 20, 20, 20);
+    QTextCursor cursor = ui->textEditor->textCursor();
+    int line = cursor.blockNumber() + 1;
+    int col  = cursor.columnNumber() + 1;
 
-    // --- Метка текущего игрока ---
-    statusLabel = new QLabel;
-    statusLabel->setAlignment(Qt::AlignCenter);
-    statusLabel->setStyleSheet(
-        "font-size: 16px; font-weight: bold; "
-        "padding: 8px; border-radius: 6px; "
-        "background: #E3F2FD; color: #1565C0;");
-    updateLabel();
-    layout->addWidget(statusLabel);
+    cursorLabel->setText(
+        QString("Стр: %1   Кол: %2").arg(line).arg(col));
 
-    // --- Игровая сетка 3x3 ---
-    auto *gridFrame  = new QFrame;
-    auto *gridLayout = new QGridLayout(gridFrame);
-    gridLayout->setSpacing(6);
+    statusBar()->showMessage(
+        QString("Позиция курсора: строка %1, столбец %2")
+            .arg(line).arg(col), 2000);
+}
 
-    signalMapper = new QSignalMapper(this);
-
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            buttons[i][j] = new QPushButton;
-            buttons[i][j]->setFixedSize(90, 90);
-            buttons[i][j]->setStyleSheet(
-                "font-size: 28px; font-weight: bold; "
-                "background: white; border: 2px solid #BBDEFB; "
-                "border-radius: 8px;");
-            gridLayout->addWidget(buttons[i][j], i, j);
-
-            int id = i * 3 + j;
-            signalMapper->setMapping(buttons[i][j], id);
-            connect(buttons[i][j], SIGNAL(clicked()),
-                    signalMapper,   SLOT(map()));
-        }
+// ─────────────────────────────────────────
+// TAREFA 2 — Геометрия окна
+// ─────────────────────────────────────────
+void MainWindow::loadGeometry()
+{
+    QSettings s;
+    if (s.value("saveGeometry", false).toBool()) {
+        restoreGeometry(s.value("windowGeometry").toByteArray());
+        restoreState(s.value("windowState").toByteArray());
     }
-
-    connect(signalMapper, SIGNAL(mapped(int)),
-            this,         SLOT(onCellClicked(int)));
-
-    layout->addWidget(gridFrame, 0, Qt::AlignCenter);
-
-    // --- Кнопка Clear ---
-    auto *clearBtn = new QPushButton("🔄  Clear (сброс)");
-    clearBtn->setFixedHeight(40);
-    clearBtn->setStyleSheet(
-        "font-size: 13px; font-weight: bold; "
-        "background: #EF5350; color: white; "
-        "border-radius: 8px; padding: 0 20px;");
-    layout->addWidget(clearBtn);
-    layout->addStretch();
-
-    connect(clearBtn, &QPushButton::clicked,
-            this,     &MainWindow::onClearClicked);
-
-    return w;
 }
 
-void MainWindow::onCellClicked(int id)
+void MainWindow::saveGeometryIfNeeded()
 {
-    int row = id / 3;
-    int col = id % 3;
-
-    // Ячейка уже занята — игнорируем
-    if (!buttons[row][col]->text().isEmpty())
-        return;
-
-    // Устанавливаем символ
-    if (currentPlayer == 1) {
-        buttons[row][col]->setText("X");
-        buttons[row][col]->setStyleSheet(
-            "font-size: 28px; font-weight: bold; "
-            "background: #E3F2FD; color: #1565C0; "
-            "border: 2px solid #1565C0; border-radius: 8px;");
-    } else {
-        buttons[row][col]->setText("O");
-        buttons[row][col]->setStyleSheet(
-            "font-size: 28px; font-weight: bold; "
-            "background: #FFEBEE; color: #C62828; "
-            "border: 2px solid #C62828; border-radius: 8px;");
+    QSettings s;
+    if (s.value("saveGeometry", false).toBool()) {
+        s.setValue("windowGeometry", saveGeometry());
+        s.setValue("windowState",    saveState());
     }
+}
 
-    // Проверка победителя
-    if (checkWinner()) {
-        QMessageBox::information(this, "Победа! 🎉",
-            QString("Победил Player %1!").arg(currentPlayer));
-        resetBoard();
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    saveGeometryIfNeeded();
+    event->accept();
+}
+
+// ─────────────────────────────────────────
+// НАСТРОЙКИ
+// ─────────────────────────────────────────
+void MainWindow::openSettings()
+{
+    SettingsDialog dlg(this);
+    dlg.exec();
+    statusBar()->showMessage("Настройки сохранены", 2000);
+}
+
+// ─────────────────────────────────────────
+// TAREFA 4/5 — График из файла
+// ─────────────────────────────────────────
+void MainWindow::setupPlot()
+{
+    plot = new QCustomPlot(ui->plotWidget);
+    auto *layout = new QVBoxLayout(ui->plotWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(plot);
+
+    plot->setBackground(QColor("#FAFAFA"));
+    plot->xAxis->setLabel("X");
+    plot->yAxis->setLabel("Y");
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+}
+
+void MainWindow::loadFileAndPlot()
+{
+    QString path = QFileDialog::getOpenFileName(
+        this, "Загрузить данные", "",
+        "Text files (*.txt *.csv);;All files (*)");
+
+    if (path.isEmpty()) return;
+
+    plotDataFromFile(path);
+    statusBar()->showMessage("Файл загружен: " + path, 3000);
+}
+
+void MainWindow::plotDataFromFile(const QString &filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Ошибка",
+            "Не удалось открыть файл:\n" + filePath);
         return;
     }
 
-    // Проверка ничьей
-    bool full = true;
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            if (buttons[i][j]->text().isEmpty()) {
-                full = false;
-                break;
+    QVector<double> xData, yData;
+    QTextStream in(&file);
+
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty() || line.startsWith('#')) continue;
+
+        // Поддержка форматов: "x y" или "x,y" или "x;y"
+        line.replace(',', ' ');
+        line.replace(';', ' ');
+        QStringList parts = line.split(' ', Qt::SkipEmptyParts);
+
+        if (parts.size() >= 2) {
+            bool okX, okY;
+            double x = parts[0].toDouble(&okX);
+            double y = parts[1].toDouble(&okY);
+            if (okX && okY) {
+                xData.append(x);
+                yData.append(y);
             }
+        }
+    }
+    file.close();
 
-    if (full) {
-        QMessageBox::information(this, "Ничья! 🤝", "Ничья! Никто не победил.");
-        resetBoard();
+    if (xData.isEmpty()) {
+        QMessageBox::warning(this, "Ошибка",
+            "Файл не содержит корректных данных.\n"
+            "Формат: x y (по одной паре на строку)");
         return;
     }
 
-    // Смена игрока
-    currentPlayer = (currentPlayer == 1) ? 2 : 1;
-    updateLabel();
+    // Строим график
+    plot->clearGraphs();
+    plot->addGraph();
+    plot->graph(0)->setData(xData, yData);
+    plot->graph(0)->setPen(QPen(QColor("#1565C0"), 2));
+    plot->graph(0)->setName("Данные из файла");
+    plot->rescaleAxes();
+    plot->replot();
+
+    statusBar()->showMessage(
+        QString("График построен: %1 точек").arg(xData.size()), 4000);
 }
 
-void MainWindow::onClearClicked()
+// ─────────────────────────────────────────
+// TAREFA 6 — QCustomPlot демо (sin/cos)
+// ─────────────────────────────────────────
+void MainWindow::plotDemo()
 {
-    // Смена первого хода
-    startPlayer   = (startPlayer == 1) ? 2 : 1;
-    currentPlayer = startPlayer;
-    resetBoard();
-}
-
-bool MainWindow::checkWinner()
-{
-    // Проверка строк
-    for (int i = 0; i < 3; i++) {
-        if (!buttons[i][0]->text().isEmpty() &&
-            buttons[i][0]->text() == buttons[i][1]->text() &&
-            buttons[i][1]->text() == buttons[i][2]->text())
-            return true;
+    QVector<double> x(201), sinY(201), cosY(201);
+    for (int i = 0; i <= 200; i++) {
+        x[i]    = -M_PI + i * (2 * M_PI / 200.0);
+        sinY[i] = std::sin(x[i]);
+        cosY[i] = std::cos(x[i]);
     }
-    // Проверка столбцов
-    for (int j = 0; j < 3; j++) {
-        if (!buttons[0][j]->text().isEmpty() &&
-            buttons[0][j]->text() == buttons[1][j]->text() &&
-            buttons[1][j]->text() == buttons[2][j]->text())
-            return true;
-    }
-    // Проверка диагоналей
-    if (!buttons[0][0]->text().isEmpty() &&
-        buttons[0][0]->text() == buttons[1][1]->text() &&
-        buttons[1][1]->text() == buttons[2][2]->text())
-        return true;
 
-    if (!buttons[0][2]->text().isEmpty() &&
-        buttons[0][2]->text() == buttons[1][1]->text() &&
-        buttons[1][1]->text() == buttons[2][0]->text())
-        return true;
+    plot->clearGraphs();
 
-    return false;
-}
+    // График sin(x)
+    plot->addGraph();
+    plot->graph(0)->setData(x, sinY);
+    plot->graph(0)->setPen(QPen(QColor("#1565C0"), 2));
+    plot->graph(0)->setName("sin(x)");
 
-void MainWindow::resetBoard()
-{
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            buttons[i][j]->setText("");
-            buttons[i][j]->setStyleSheet(
-                "font-size: 28px; font-weight: bold; "
-                "background: white; border: 2px solid #BBDEFB; "
-                "border-radius: 8px;");
-        }
-    }
-    updateLabel();
-}
+    // График cos(x)
+    plot->addGraph();
+    plot->graph(1)->setData(x, cosY);
+    plot->graph(1)->setPen(QPen(QColor("#C62828"), 2));
+    plot->graph(1)->setName("cos(x)");
 
-void MainWindow::updateLabel()
-{
-    if (currentPlayer == 1) {
-        statusLabel->setText("🎮  Ход: Player 1  —  X");
-        statusLabel->setStyleSheet(
-            "font-size: 16px; font-weight: bold; "
-            "padding: 8px; border-radius: 6px; "
-            "background: #E3F2FD; color: #1565C0;");
-    } else {
-        statusLabel->setText("🎮  Ход: Player 2  —  O");
-        statusLabel->setStyleSheet(
-            "font-size: 16px; font-weight: bold; "
-            "padding: 8px; border-radius: 6px; "
-            "background: #FFEBEE; color: #C62828;");
-    }
+    plot->legend->setVisible(true);
+    plot->xAxis->setLabel("X");
+    plot->yAxis->setLabel("Y");
+    plot->xAxis->setRange(-M_PI, M_PI);
+    plot->yAxis->setRange(-1.2, 1.2);
+    plot->replot();
 }
 ```
 
 ---
 
-## 📁 `CMakeLists.txt`
+## 📁 `mainwindow.ui`
 
-Verifica que o teu `CMakeLists.txt` tem isto (o Qt Creator gera automaticamente, só confirma):
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>900</width><height>600</height></rect>
+  </property>
+  <property name="windowTitle"><string>Lab 2-3</string></property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation"><enum>Qt::Horizontal</enum></property>
+      <!-- Lado esquerdo: abas -->
+      <widget class="QTabWidget" name="tabWidget">
+       <!-- Aba 1: Editor de texto (Tarefa 1) -->
+       <widget class="QWidget" name="tabEditor">
+        <attribute name="title"><string>Редактор</string></attribute>
+        <layout class="QVBoxLayout">
+         <item>
+          <widget class="QPlainTextEdit" name="textEditor">
+           <property name="placeholderText">
+            <string>Введите текст здесь...
+Позиция курсора отображается в статус-баре.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <!-- Aba 2: 5 widgets sincronizados (Tarefa 3) -->
+       <widget class="QWidget" name="tabWidgets">
+        <attribute name="title"><string>Виджеты</string></attribute>
+        <layout class="QVBoxLayout">
+         <item>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title"><string>Slider ↔ ScrollBar ↔ SpinBox</string></property>
+           <layout class="QVBoxLayout">
+            <item><widget class="QSlider" name="slider">
+              <property name="orientation"><enum>Qt::Horizontal</enum></property>
+              <property name="maximum"><number>100</number></property>
+            </widget></item>
+            <item><widget class="QScrollBar" name="scrollBar">
+              <property name="orientation"><enum>Qt::Horizontal</enum></property>
+              <property name="maximum"><number>100</number></property>
+            </widget></item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item><widget class="QLabel"><property name="text"><string>Значение:</string></property></widget></item>
+              <item><widget class="QSpinBox" name="spinBox">
+                <property name="maximum"><number>100</number></property>
+              </widget></item>
+              <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox">
+           <property name="title"><string>CheckBox → Label</string></property>
+           <layout class="QHBoxLayout">
+            <item><widget class="QCheckBox" name="checkBox">
+              <property name="text"><string>Активировать</string></property>
+            </widget></item>
+            <item><widget class="QLabel" name="statusLbl">
+              <property name="text"><string>Статус: Выкл</string></property>
+              <property name="styleSheet"><string>color: red; font-weight: bold;</string></property>
+            </widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+           </layout>
+          </widget>
+         </item>
+         <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+        </layout>
+       </widget>
+      </widget>
+      <!-- Lado direito: gráfico -->
+      <widget class="QWidget" name="plotWidget"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+</ui>
+```
 
-```cmake
-cmake_minimum_required(VERSION 3.16)
-project(Lab2GUI VERSION 0.1 LANGUAGES CXX)
+---
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+## ⚠️ Conectar os widgets da Tarefa 3 no `mainwindow.cpp`
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+No construtor do `MainWindow`, **após** `ui->setupUi(this)`, adiciona:
 
-set(PROJECT_SOURCES
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
-)
+```cpp
+// ── Tarefa 3: sinais/slots pelo Designer (complemento via código) ──
+connect(ui->slider,   QOverload<int>::of(&QSlider::valueChanged),
+        ui->scrollBar, &QScrollBar::setValue);
+connect(ui->slider,   QOverload<int>::of(&QSlider::valueChanged),
+        ui->spinBox,   &QSpinBox::setValue);
+connect(ui->spinBox,  QOverload<int>::of(&QSpinBox::valueChanged),
+        ui->slider,    &QSlider::setValue);
+connect(ui->checkBox, &QCheckBox::toggled,
+        [this](bool checked) {
+            if (checked) {
+                ui->statusLbl->setText("Статус: Вкл ✓");
+                ui->statusLbl->setStyleSheet("color:green;font-weight:bold;");
+            } else {
+                ui->statusLbl->setText("Статус: Выкл");
+                ui->statusLbl->setStyleSheet("color:red;font-weight:bold;");
+            }
+        });
+```
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(Lab2GUI MANUAL_FINALIZATION ${PROJECT_SOURCES})
-else()
-    add_executable(Lab2GUI ${PROJECT_SOURCES})
-endif()
+---
 
-target_link_libraries(Lab2GUI PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+## 📄 Formato do ficheiro de dados (Tarefa 5)
 
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(Lab2GUI)
-endif()
+Cria um ficheiro `data.txt` para testar:
+
+```
+# Dados de exemplo (x y)
+0.0  0.0
+1.0  1.0
+2.0  4.0
+3.0  9.0
+4.0  16.0
+5.0  25.0
 ```
 
 ---
@@ -455,17 +666,18 @@ endif()
 ## Resultado esperado
 
 ```
-┌─────────────────────────────────────────┐
-│  ⚙ Виджеты  │  ✖ Крестики-нолики       │
-├─────────────────────────────────────────┤
-│  🎮 Ход: Player 1 — X                  │
-│                                         │
-│  [ X ] [   ] [ O ]                     │
-│  [   ] [ X ] [   ]                     │
-│  [ O ] [   ] [   ]                     │
-│                                         │
-│        [ 🔄 Clear ]                    │
-└─────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  Файл   Настройки                                    │
+├──[📂]──[⚙]───────────────────────────────────────────┤
+│                    │                                  │
+│  Редактор│Виджеты  │   📈 sin(x) ──────              │
+│  ┌──────────────┐  │   📈 cos(x) ──────              │
+│  │ Текст...     │  │                                  │
+│  │              │  │   (arrastar para zoom)           │
+│  └──────────────┘  │                                  │
+├────────────────────────────────────────────────────-─┤
+│  Стр: 3  Кол: 5  │  Позиция курсора: строка 3 кол 5  │
+└──────────────────────────────────────────────────────┘
 ```
 
 Pressiona **`Ctrl + R`** e manda o print! 🚀
